@@ -34,6 +34,20 @@ import os
 
 cards = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]
 
+player_hand = []
+player_total = 0
+
+computer_hand = []
+computer_total = 0
+
+
+def first_draw():
+    global player_hand
+    player_hand = random.sample(cards, 2)
+
+    global computer_hand
+    computer_hand = random.sample(cards, 2)
+
 
 def compute_totals(hand):
     total = 0
@@ -47,6 +61,49 @@ def print_totals(player_hand, computer_hand, player_total):
     print(f"Computer's first card: {computer_hand[0]}")
 
 
+def switch_computer_ace():
+    global computer_total
+    global computer_hand
+    if computer_total > 21 and computer_hand[-1] == 11:
+        computer_total -= 10
+        computer_hand[-1] = 1
+
+
+def switch_player_ace():
+    global player_total
+    global player_hand
+    if player_total > 21 and player_hand[-1] == 11:
+        player_total -= 10
+        player_hand[-1] = 1
+
+
+def fill_computer_hand():
+    global computer_total
+    global computer_hand
+    computer_total = compute_totals(computer_hand)
+    while computer_total <= 16:
+        computer_hand.extend(random.sample(cards, 1))
+        computer_total = compute_totals(computer_hand)
+        switch_computer_ace()
+
+
+def player_went_over(player_hand, player_total, computer_hand, computer_total):
+    print(f"Your final hand: {player_hand}, final score: {player_total}")
+    print(f"Computer's final hand: {computer_hand}, final score: {computer_total}")
+    print("You went over. You lose 😤")
+
+
+def who_wins(player_total, computer_total):
+    if computer_total > 21:
+        print("Opponent went over. You win 😁")
+    elif player_total == computer_total:
+        print("Draw 🙃")
+    elif player_total > computer_total:
+        print("You win 😃")
+    else:
+        print("You lose 😤")
+
+
 def blackjack():
     wanna_play = (
         input("Do you want to play a game of Blackjack? Type 'y' or 'n': ")
@@ -56,8 +113,7 @@ def blackjack():
         os.system("clear")
         print(logo)
 
-        player_hand = random.sample(cards, 2)
-        computer_hand = random.sample(cards, 2)
+        first_draw()
 
         player_total = compute_totals(player_hand)
 
@@ -74,49 +130,24 @@ def blackjack():
                 (input("Type 'y' to get another card, type 'n' to pass: ")).lower()
             ) == "y":
                 player_hand.extend(random.sample(cards, 1))
-
                 player_total = compute_totals(player_hand)
-                if player_total > 21 and player_hand[-1] == 11:
-                    player_total -= 10
-                    player_hand[-1] = 1
+
+                switch_player_ace()
                 print_totals(player_hand, computer_hand, player_total)
                 if player_total > 21:
                     player_continue = False
-                    computer_total = compute_totals(computer_hand)
-                    while computer_total <= 16:
-                        computer_hand.extend(random.sample(cards, 1))
-                        computer_total = compute_totals(computer_hand)
-                        if computer_total > 21 and computer_hand[-1] == 11:
-                            computer_total -= 10
-                            computer_hand[-1] = 1
-                    print(
-                        f"Your final hand: {player_hand}, final score: {player_total}"
+                    fill_computer_hand()
+                    player_went_over(
+                        player_hand, player_total, computer_hand, computer_total
                     )
-                    print(
-                        f"Computer's final hand: {computer_hand}, final score: {computer_total}"
-                    )
-                    print("You went over. You lose 😤")
-                    blackjack()
-
             else:
                 player_continue = False
                 print(f"Your final hand: {player_hand}, final score: {player_total}")
-                computer_total = compute_totals(computer_hand)
-                while computer_total <= 16:
-                    computer_hand.extend(random.sample(cards, 1))
-                    computer_total = compute_totals(computer_hand)
-                    if computer_total > 21 and computer_hand[-1] == 11:
-                        computer_total -= 10
-                        computer_hand[-1] = 1
+                fill_computer_hand()
                 print(
                     f"Computer's final hand: {computer_hand}, final score: {computer_total}"
                 )
-                if computer_total > 21:
-                    print("Opponent went over. You win 😁")
-                elif player_total == computer_total:
-                    print("Draw 🙃")
-                elif player_total > computer_total:
-                    print("You win 😃")
+                who_wins(player_total, computer_total)
 
         blackjack()
 
